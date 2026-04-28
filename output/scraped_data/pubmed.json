@@ -1,0 +1,37 @@
+[
+  {
+    "source_url": "https://pubmed.ncbi.nlm.nih.gov/37076414/",
+    "source_type": "pubmed",
+    "title": "Editorial: Stent Strut Thickness and Outcome in Chronic Total Coronary Occlusions: The Thinner the Better?",
+    "description": "",
+    "author": [
+      "Gerald S Werner",
+      "Kenji Yaginuma"
+    ],
+    "published_date": "2023",
+    "language": "en",
+    "region": "pubmed.ncbi.nlm.nih.gov",
+    "topic_tags": [
+      "healthcare",
+      "editorial",
+      "stent",
+      "strut",
+      "thickness",
+      "outcome"
+    ],
+    "trust_score": 0.715,
+    "trust_score_breakdown": {
+      "author_credibility": 0.55,
+      "citation_count": 0.35,
+      "domain_authority": 0.98,
+      "recency": 0.65,
+      "medical_disclaimer_presence": 1.0,
+      "final_score": 0.715
+    },
+    "journal": "Cardiovascular revascularization medicine : including molecular interventions",
+    "citation_count": 0,
+    "content_chunks": [
+      "Editorial: Stent Strut Thickness and Outcome in Chronic Total Coronary Occlusions: The Thinner the Better?"
+    ]
+  }
+]

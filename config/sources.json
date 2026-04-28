@@ -1,0 +1,14 @@
+{
+  "blogs": [
+    "https://realpython.com/python-web-scraping-practical-introduction/",
+    "https://www.scrapingbee.com/blog/web-scraping-101-with-python/",
+    "https://www.freecodecamp.org/news/web-scraping-python-tutorial-how-to-scrape-data-from-a-website/"
+  ],
+  "youtube": [
+    "https://youtu.be/aZb0iu4uGwA?si=6JXcNbVlONQs0C5f"
+   
+  ],
+  "pubmed": [
+    "https://pubmed.ncbi.nlm.nih.gov/37076414/"
+  ]
+}
