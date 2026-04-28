@@ -1,35 +1,42 @@
-# Short Report
+# Short Report: Multi-Source Scraping and Trust Scoring
 
 ## Scraping Strategy
 
-The project uses source-specific scrapers because blogs, YouTube videos, and PubMed articles expose metadata differently. Blog pages are parsed from HTML with BeautifulSoup, using meta tags and article/main content blocks where possible. YouTube data is collected from public page metadata and oEmbed, which avoids requiring an API key. PubMed uses NCBI E-utilities XML, which is more stable than scraping the visible PubMed web page.
+This project uses a source-specific scraping strategy because blogs, YouTube videos, and PubMed articles expose their content in different formats. Blog posts are scraped from HTML pages using `requests` and `BeautifulSoup`. The scraper reads common metadata fields such as title, description, author, and publish date from meta tags, then extracts article text mainly from `article`, `main`, paragraph, and list elements. Common non-content sections such as navigation bars, headers, footers, ads, sidebars, scripts, and forms are removed before chunking the article text.
+
+YouTube videos are handled separately because their content is not structured like a normal blog page. The YouTube scraper collects public page metadata and oEmbed data, including video title, channel name, publish date when available, and video description. Transcript extraction is treated as optional because transcripts may be unavailable or restricted without an additional library or API.
+
+PubMed is scraped through the official NCBI E-utilities XML endpoint instead of scraping the visual web page. This is more reliable for academic metadata. The PubMed scraper extracts article title, authors, journal name, abstract, publication year, and reference count where available. All scraped records are stored in a common JSON schema so that different source types can be processed consistently.
 
 ## Topic Tagging Method
 
-Topic tagging uses a lightweight keyword approach. The system checks extracted text against curated topic dictionaries such as `web scraping`, `python`, `AI`, `healthcare`, `research`, `programming`, and `education`. It then fills remaining tag slots with frequent non-stopword terms from the content. This keeps the project simple, explainable, and runnable without a paid NLP API.
+Topic tagging is implemented with a lightweight keyword-based method. The extracted title, description, abstract, and content are combined into one text field. The tagging module checks this text against predefined topic keyword groups such as `web scraping`, `python`, `AI`, `healthcare`, `research`, `programming`, and `education`.
+
+After matching known topic groups, the system also counts frequent meaningful words from the content and adds the most relevant terms as extra tags. Common stop words such as “the,” “and,” “with,” and “from” are ignored. This approach is simple, explainable, and does not require paid NLP APIs or large machine learning models. It is suitable for an assignment-level project where the goal is to automatically generate useful topic labels from scraped content.
 
 ## Trust Score Algorithm
 
-The trust score is a weighted score from `0` to `1`:
+The trust score estimates the reliability of each source on a scale from `0` to `1`. The implemented formula is:
 
 ```text
-Trust Score = f(author_credibility, citation_count, domain_authority, recency, medical_disclaimer_presence)
+Trust Score =
+  author_credibility * 0.25
+  + citation_count * 0.15
+  + domain_authority * 0.25
+  + recency * 0.20
+  + medical_disclaimer_presence * 0.15
 ```
 
-The implemented weights are:
+Author credibility is based on whether the author, organization, or channel is known and reliable. For example, PubMed/NIH-style sources and established educational publishers receive stronger scores, while unknown authors receive conservative fallback values. Citation count is mainly useful for PubMed articles, where references can indicate academic grounding. Domain authority is rule-based and gives higher scores to trusted domains such as PubMed, NIH, and established educational websites. Recency rewards newer content and penalizes outdated information. Medical disclaimer presence is important for health-related content, because medical claims without proper disclaimers can be risky or misleading.
 
-- Author credibility: 25%
-- Citation count: 15%
-- Domain authority: 25%
-- Recency: 20%
-- Medical disclaimer presence: 15%
-
-PubMed and official health domains receive strong domain scores. Blogs and YouTube sources are scored more conservatively unless their author or domain is recognized. Missing values receive neutral fallback values instead of breaking the pipeline.
+The final score is rounded to three decimal places and stored along with a detailed score breakdown. This makes the scoring system transparent and easy to explain.
 
 ## Edge Case Handling
 
-Missing author, publish date, and transcript fields are marked as `Unknown`. Multiple PubMed authors are handled as a list and averaged by the scoring module. Long articles and abstracts are chunked into smaller sections for downstream processing. If a source cannot be scraped because of network or site restrictions, the pipeline still writes an output object with an error message in the trust score breakdown.
+The system handles missing metadata by storing unknown values instead of stopping the scraping pipeline. If an author, publish date, transcript, or region is not available, the field is marked as `Unknown`. The trust score module also uses neutral or conservative fallback scores for missing values, so incomplete metadata does not crash the program.
 
-## Limitations
+Multiple authors are supported, especially for PubMed articles. When several authors are present, their credibility scores are averaged. Long articles and abstracts are split into smaller chunks of about 120 words, which makes the content easier to process later for search, summarization, or analysis.
 
-The project avoids paid APIs and browser automation, so YouTube transcript availability is limited. Domain authority is rule-based rather than retrieved from an SEO provider. Language detection is lightweight and optimized for this English-language dataset. A production version should add retry queues, caching, structured logging, proxy controls, transcript APIs, and stronger author verification.
+The project also includes basic abuse prevention logic. Unknown authors are not given high credibility automatically. Low-authority or unknown domains are scored conservatively. Medical content without a disclaimer is penalized unless it comes from a trusted academic source such as PubMed. Older content receives a recency penalty to reduce the risk of relying on outdated information.
+
+If a website blocks scraping, returns an error, or changes its structure, the pipeline records the failed source with an error message instead of breaking the whole run. This makes the scraper more robust and ensures that one failed source does not prevent the remaining sources from being processed.
